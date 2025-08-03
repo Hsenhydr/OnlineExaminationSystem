@@ -1,0 +1,23 @@
+# Flutter/web app
+web/build/
+web/.dart_tool/
+web/.idea/
+web/.flutter-plugins
+web/.packages
+
+# Node.js backend
+backend exam platform/node_modules/
+backend exam platform/.env
+backend exam platform/package-lock.json
+
+# General
+.DS_Store
+*.log
+.env
+*.db
+*.sqlite
+*.iml
+*.class
+
+# VS Code
+.vscode/

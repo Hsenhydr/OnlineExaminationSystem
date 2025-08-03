@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Dashboard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr"
+      crossorigin="anonymous"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        margin: 0;
+        background-color: #f4f6f8;
+        color: #333;
+      }
+
+      .right-navbar {
+        width: 220px;
+        background: linear-gradient(180deg, #2455c3, #1d3e8b);
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        padding-top: 40px;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+      }
+
+      .right-navbar ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+      }
+
+      .right-navbar li {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        transition: background 0.3s ease;
+      }
+
+      .right-navbar a {
+        display: block;
+        color: white;
+        padding: 16px 24px;
+        text-decoration: none;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+        transition: background 0.3s ease, padding-left 0.3s ease;
+      }
+
+      .right-navbar a:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        padding-left: 32px;
+      }
+
+      .content {
+        margin-left: 220px;
+        padding: 40px 30px;
+      }
+
+      .content-section {
+        display: none;
+        animation: fadeIn 0.4s ease-in-out;
+      }
+
+      .content-section.active {
+        display: block;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .form-control,
+      .form-select {
+        border-radius: 0.5rem;
+        border: 1px solid #ccc;
+        transition: border-color 0.3s;
+      }
+
+      .form-control:focus,
+      .form-select:focus {
+        border-color: #2455c3;
+        box-shadow: 0 0 0 0.2rem rgba(36, 85, 195, 0.25);
+      }
+
+      .question-block {
+        border: 1px solid #dee2e6;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+        background-color: #fff;
+      }
+
+      label.form-label {
+        font-weight: 500;
+        margin-bottom: 0.3rem;
+        color: #1f1f1f;
+      }
+
+      .btn {
+        border-radius: 0.4rem;
+        padding: 10px 20px;
+        font-size: 0.95rem;
+        font-weight: 500;
+      }
+
+      .btn-primary {
+        background-color: #2455c3;
+        border-color: #2455c3;
+      }
+
+      .btn-primary:hover {
+        background-color: #1f469e;
+        border-color: #1f469e;
+      }
+
+      .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+      }
+
+      .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #5a6268;
+      }
+
+      .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+      }
+
+      .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+      }
+
+      #deleteFeedback {
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="right-navbar">
+      <ul>
+        <li onclick="showContent('add')"><a href="#">Add Exam</a></li>
+        <li onclick="showContent('delete')"><a href="#">Delete Exam</a></li>
+      </ul>
+    </nav>
+
+    <div class="content">
+      <div id="add" class="content-section active">
+        <section class="h-100 h-custom">
+          <div class="container py-5 h-100">
+            <form
+              id="examForm"
+              class="row d-flex justify-content-center align-items-center h-100 px-md-2"
+            >
+              <!-- Exam metadata -->
+              <div class="col-lg-8 col-xl-6 mb-4">
+                <label class="form-label">Exam Title</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="examTitle"
+                  placeholder="Enter exam title"
+                  required
+                />
+              </div>
+              <div class="col-lg-4 col-xl-3 mb-4">
+                <label class="form-label">Duration (minutes)</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="examDuration"
+                  min="1"
+                  placeholder="e.g. 60"
+                  required
+                />
+              </div>
+              <div class="col-lg-4 col-xl-3 mb-4">
+                <label class="form-label">Major</label>
+                <select id="majorSelect" class="form-select" required>
+                  <option value="" disabled selected>Loading majors...</option>
+                </select>
+              </div>
+
+              <!-- Questions container -->
+              <div id="questions-container" class="col-lg-8 col-xl-6">
+                <!-- One question block initially -->
+                <div
+                  class="card rounded-3 question-block mb-4"
+                  data-question="1"
+                >
+                  <div class="card-body p-4 p-md-5">
+                    <div class="form-outline mb-4">
+                      <label class="form-label">Question 1</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        name="q1"
+                        placeholder="Enter question text"
+                        required
+                      />
+                    </div>
+                    <div class="row mb-3">
+                      <div class="col-md-6 mb-3">
+                        <label class="form-label">a)</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          name="q1_a"
+                          placeholder="Choice a"
+                          required
+                        />
+                      </div>
+                      <div class="col-md-6 mb-3">
+                        <label class="form-label">b)</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          name="q1_b"
+                          placeholder="Choice b"
+                          required
+                        />
+                      </div>
+                      <div class="col-md-6 mb-3">
+                        <label class="form-label">c)</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          name="q1_c"
+                          placeholder="Choice c"
+                          required
+                        />
+                      </div>
+                      <div class="col-md-6 mb-3">
+                        <label class="form-label">d)</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          name="q1_d"
+                          placeholder="Choice d"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div class="form-outline mb-4">
+                      <label class="form-label">Correct Answer</label>
+                      <select class="form-select correct-answer" required>
+                        <option value="" disabled selected>
+                          Select correct answer
+                        </option>
+                        <option value="a">a)</option>
+                        <option value="b">b)</option>
+                        <option value="c">c)</option>
+                        <option value="d">d)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Add question button -->
+              <div class="col-12 text-center mb-4">
+                <button
+                  type="button"
+                  id="addQuestionBtn"
+                  class="btn btn-secondary btn-sm"
+                >
+                  Add Question
+                </button>
+              </div>
+
+              <!-- Submit button -->
+              <div class="col-12 text-center">
+                <button type="submit" class="btn btn-primary btn-lg">
+                  Submit
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </div>
+
+      <div id="delete" class="content-section">
+        <div class="container my-4" style="max-width: 400px">
+          <h3>Delete Exam</h3>
+          <div class="mb-3">
+            <label for="examSelect" class="form-label"
+              >Select Exam to Delete</label
+            >
+            <select id="examSelect" class="form-select" required>
+              <option value="" disabled selected>Loading exams...</option>
+            </select>
+          </div>
+          <button id="deleteExamBtn" class="btn btn-danger">Delete Exam</button>
+          <div id="deleteFeedback" class="mt-3"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function showContent(id) {
+        const sections = document.querySelectorAll(".content-section");
+        sections.forEach((section) => section.classList.remove("active"));
+        document.getElementById(id).classList.add("active");
+      }
+
+      // Add question dynamically
+      document
+        .getElementById("addQuestionBtn")
+        .addEventListener("click", () => {
+          const container = document.getElementById("questions-container");
+          const questionBlocks = container.querySelectorAll(".question-block");
+          const nextNum = questionBlocks.length + 1;
+
+          const newBlock = questionBlocks[0].cloneNode(true);
+          newBlock.setAttribute("data-question", nextNum);
+          newBlock.querySelector(
+            "label.form-label"
+          ).textContent = `Question ${nextNum}`;
+
+          const inputs = newBlock.querySelectorAll("input");
+          inputs.forEach((input) => {
+            const name = input.getAttribute("name");
+            const newName = name.replace(/\d+/, nextNum);
+            input.setAttribute("name", newName);
+            input.value = "";
+          });
+
+          const select = newBlock.querySelector("select.correct-answer");
+          select.selectedIndex = 0;
+
+          container.appendChild(newBlock);
+        });
+
+      // Handle form submission
+      document
+        .getElementById("examForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const title = document.getElementById("examTitle").value.trim();
+          const duration = parseInt(
+            document.getElementById("examDuration").value.trim()
+          );
+          const majorSelect = document.getElementById("majorSelect");
+          const majorId = parseInt(majorSelect.value);
+
+          if (!title || !duration || !majorId) {
+            alert("Please fill exam title, duration, and select a major.");
+            return;
+          }
+
+          const questionBlocks = document.querySelectorAll(".question-block");
+          const questions = [];
+
+          for (const block of questionBlocks) {
+            const qText = block.querySelector('input[name^="q"]').value.trim();
+            const choice_a = block
+              .querySelector('input[name$="_a"]')
+              .value.trim();
+            const choice_b = block
+              .querySelector('input[name$="_b"]')
+              .value.trim();
+            const choice_c = block
+              .querySelector('input[name$="_c"]')
+              .value.trim();
+            const choice_d = block
+              .querySelector('input[name$="_d"]')
+              .value.trim();
+            const correctAnswer = block.querySelector(
+              "select.correct-answer"
+            ).value;
+
+            if (
+              !qText ||
+              !choice_a ||
+              !choice_b ||
+              !choice_c ||
+              !choice_d ||
+              !correctAnswer
+            ) {
+              alert(
+                "Please fill all fields and select the correct answer in all questions."
+              );
+              return;
+            }
+
+            questions.push({
+              question_text: qText,
+              choice_a,
+              choice_b,
+              choice_c,
+              choice_d,
+              correct_answer: correctAnswer,
+            });
+          }
+
+          if (questions.length === 0) {
+            alert("Please add at least one question.");
+            return;
+          }
+
+          try {
+            const response = await fetch(
+              "http://localhost:4000/api/instructor/create-exam",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  title,
+                  duration,
+                  major_id: majorId,
+                  questions,
+                }),
+              }
+            );
+
+            if (response.ok) {
+              const data = await response.json();
+              alert("Exam created successfully! Exam ID: " + data.examId);
+
+              document.getElementById("examForm").reset();
+
+              const container = document.getElementById("questions-container");
+              while (container.children.length > 1) {
+                container.removeChild(container.lastChild);
+              }
+            } else {
+              const err = await response.json();
+              alert("Error: " + err.message);
+            }
+          } catch (err) {
+            alert("Network or server error: " + err.message);
+          }
+        });
+
+      async function loadExams() {
+        const examSelect = document.getElementById("examSelect");
+        try {
+          const res = await fetch(
+            "http://localhost:4000/api/instructor/getexams"
+          );
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`Failed to fetch exams: ${res.status} - ${text}`);
+          }
+
+          const exams = await res.json();
+          examSelect.innerHTML =
+            '<option value="" disabled selected>Select an exam</option>';
+          exams.forEach((exam) => {
+            const opt = document.createElement("option");
+            opt.value = exam.id;
+            opt.textContent = exam.title;
+            examSelect.appendChild(opt);
+          });
+        } catch (err) {
+          examSelect.innerHTML =
+            '<option value="" disabled>Error loading exams</option>';
+          console.error(err);
+        }
+      }
+
+      async function loadMajors() {
+        const majorSelect = document.getElementById("majorSelect");
+        try {
+          const res = await fetch(
+            "http://localhost:4000/api/instructor/getmajors"
+          );
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(`Failed to fetch majors: ${res.status} - ${text}`);
+          }
+
+          const majors = await res.json();
+          majorSelect.innerHTML =
+            '<option value="" disabled selected>Select a major</option>';
+          majors.forEach((major) => {
+            const opt = document.createElement("option");
+            opt.value = major.id;
+            opt.textContent = major.name;
+            majorSelect.appendChild(opt);
+          });
+        } catch (err) {
+          majorSelect.innerHTML =
+            '<option value="" disabled>Error loading majors</option>';
+          console.error(err);
+        }
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        loadExams();
+        loadMajors();
+      });
+
+      document
+        .getElementById("deleteExamBtn")
+        .addEventListener("click", async () => {
+          const examSelect = document.getElementById("examSelect");
+          const examId = examSelect.value;
+          const examTitle =
+            examSelect.options[examSelect.selectedIndex]?.text || "";
+          const feedback = document.getElementById("deleteFeedback");
+          feedback.textContent = "";
+          feedback.className = "";
+
+          if (!examId) {
+            feedback.textContent = "Please select an exam to delete.";
+            feedback.className = "text-danger";
+            return;
+          }
+
+          if (
+            !confirm(
+              `Are you sure you want to delete exam "${examTitle}"? This action cannot be undone.`
+            )
+          ) {
+            return;
+          }
+
+          try {
+            const response = await fetch(
+              `http://localhost:4000/api/instructor/delete-exam/${examId}`,
+              { method: "DELETE" }
+            );
+            if (response.ok) {
+              const data = await response.json();
+              feedback.textContent =
+                data.message || "Exam deleted successfully.";
+              feedback.className = "text-success";
+              const optionToRemove = examSelect.querySelector(
+                `option[value="${examId}"]`
+              );
+              if (optionToRemove) optionToRemove.remove();
+              examSelect.value = "";
+            } else {
+              const errorData = await response.json();
+              feedback.textContent = `Error: ${
+                errorData.message || "Failed to delete exam."
+              }`;
+              feedback.className = "text-danger";
+            }
+          } catch (err) {
+            feedback.textContent = "Network error: " + err.message;
+            feedback.className = "text-danger";
+          }
+        });
+    </script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>
